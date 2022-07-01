@@ -1,13 +1,93 @@
-﻿namespace СoordinatesСonverter
+﻿using System.Text.RegularExpressions;
+
+namespace СoordinatesСonverter
 {
-    internal class Program
+    internal static class Program
     {
+        enum ConversionType
+        {
+            
+        }
+        
         private static void Main()
         {
-            var _converter = new Converter();
-            var a = _converter.ConvertWgs84ToSk42Latitude(50, 0);
+            var converter = new Converter();
+            var latLongRegex =
+                new Regex(@"^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$");
 
-            Console.WriteLine(a);
+            do
+            {
+                Console.WriteLine("Choose conversion:");
+                Console.WriteLine("1 - WGS-84 -> SK-42");
+                Console.WriteLine("2 - SK-42 -> WGS-84");
+                var isConversionType = int.TryParse(Console.ReadLine(), out var conversionType);
+
+                if (isConversionType)
+                {
+                    switch (conversionType)
+                    {
+                        case 1:
+                        {
+                            Console.WriteLine("Input latitude and longitude in WGS-84:");
+                            var latAndLongString = Console.ReadLine();
+
+                            if (latAndLongString is null || !latLongRegex.IsMatch(latAndLongString))
+                            {
+                                Console.WriteLine("Invalid format or null string.");
+                                Console.WriteLine("Valid formats example:");
+                                Console.WriteLine("49.9999631298, 50.0014646551");
+                                Console.WriteLine("+49.9999631298, -50.0014646551");
+                                Console.WriteLine("49.9999631298, -50.0014646551");
+                                Console.WriteLine("49, 50.00001");
+                                Console.WriteLine("49, 50");
+                                Console.WriteLine("49,50");
+                                Console.WriteLine("49,               50");
+                                Console.WriteLine("49, +50");
+
+                                continue;
+                            }
+
+                            var latAndLongSplitted = latAndLongString.Split(',');
+                            var latitude = double.Parse(latAndLongSplitted[0]);
+                            var longitude = double.Parse(latAndLongSplitted[1]);
+                            var resultLatitude = 0.0;
+                            var resultLongitude = 0.0;
+                            
+                            resultLatitude = converter.ConvertWgs84ToSk42Latitude(latitude, 0);
+                            resultLongitude = converter.ConvertSk42ToWgs84Latitude(longitude, 0);
+                            Console.WriteLine($"{resultLatitude}, {resultLongitude}");
+                            
+                            break;
+                        }
+                        default:
+                        {
+                            Console.WriteLine("Incorrect conversion type!");
+                            Console.WriteLine("Available types are:");
+                            Console.WriteLine("1 - WGS-84 -> SK-42");
+                            Console.WriteLine("2 - SK-42 -> WGS-84");
+                            
+                            continue;
+                        }
+                    }
+                }
+            } while (IsAgain());
+        }
+
+        private static bool IsAgain()
+        {
+            Console.WriteLine("Quit?");
+            Console.WriteLine("1 - yes, 2 - no");
+            var quit = Console.ReadLine();
+
+            if (quit != null)
+            {
+                if (int.Parse(quit) == 1)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 
@@ -22,8 +102,8 @@
         const double wz = 0;
         const double ms = 0;
 
-        private Ellipsoid _sk42;
-        private Ellipsoid _wgs84;
+        private readonly Ellipsoid _sk42;
+        private readonly Ellipsoid _wgs84;
         
         public Converter()
         {
