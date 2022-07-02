@@ -4,17 +4,10 @@ namespace СoordinatesСonverter
 {
     internal static class Program
     {
-        enum ConversionType
-        {
-            
-        }
-        
         private static void Main()
         {
             var converter = new Converter();
-            var latLongRegex =
-                new Regex(@"^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$");
-
+            
             do
             {
                 Console.WriteLine("Choose conversion:");
@@ -22,72 +15,109 @@ namespace СoordinatesСonverter
                 Console.WriteLine("2 - SK-42 -> WGS-84");
                 var isConversionType = int.TryParse(Console.ReadLine(), out var conversionType);
 
-                if (isConversionType)
+                if (!isConversionType)
                 {
-                    switch (conversionType)
+                    Console.WriteLine("\nIncorrect conversion type value! Use numbers.");
+                    
+                    continue;
+                }
+                
+                double latitude;
+                double longitude;
+                double resultLatitude;
+                double resultLongitude;
+                    
+                switch (conversionType)
+                {
+                    case 1:
                     {
-                        case 1:
+                        var latAndLongSplitted = GetLatitudeAndLongitude();
+
+                        if (latAndLongSplitted is null)
                         {
-                            Console.WriteLine("Input latitude and longitude in WGS-84:");
-                            var latAndLongString = Console.ReadLine();
-
-                            if (latAndLongString is null || !latLongRegex.IsMatch(latAndLongString))
-                            {
-                                Console.WriteLine("Invalid format or null string.");
-                                Console.WriteLine("Valid formats example:");
-                                Console.WriteLine("49.9999631298, 50.0014646551");
-                                Console.WriteLine("+49.9999631298, -50.0014646551");
-                                Console.WriteLine("49.9999631298, -50.0014646551");
-                                Console.WriteLine("49, 50.00001");
-                                Console.WriteLine("49, 50");
-                                Console.WriteLine("49,50");
-                                Console.WriteLine("49,               50");
-                                Console.WriteLine("49, +50");
-
-                                continue;
-                            }
-
-                            var latAndLongSplitted = latAndLongString.Split(',');
-                            var latitude = double.Parse(latAndLongSplitted[0]);
-                            var longitude = double.Parse(latAndLongSplitted[1]);
-                            var resultLatitude = 0.0;
-                            var resultLongitude = 0.0;
-                            
-                            resultLatitude = converter.ConvertWgs84ToSk42Latitude(latitude, 0);
-                            resultLongitude = converter.ConvertSk42ToWgs84Latitude(longitude, 0);
-                            Console.WriteLine($"{resultLatitude}, {resultLongitude}");
-                            
-                            break;
-                        }
-                        default:
-                        {
-                            Console.WriteLine("Incorrect conversion type!");
-                            Console.WriteLine("Available types are:");
-                            Console.WriteLine("1 - WGS-84 -> SK-42");
-                            Console.WriteLine("2 - SK-42 -> WGS-84");
-                            
                             continue;
                         }
+                            
+                        latitude = double.Parse(latAndLongSplitted[0]);
+                        longitude = double.Parse(latAndLongSplitted[1]);
+                        resultLatitude = converter.ConvertWgs84ToSk42Latitude(latitude, 0);
+                        resultLongitude = converter.ConvertWgs84ToSk42Longitude(latitude, longitude, 0);
+
+                        break;
+                    }
+                    case 2:
+                    {
+                        var latAndLongSplitted = GetLatitudeAndLongitude();
+
+                        if (latAndLongSplitted is null)
+                        {
+                            continue;
+                        }
+                            
+                        latitude = double.Parse(latAndLongSplitted[0]);
+                        longitude = double.Parse(latAndLongSplitted[1]);
+                        resultLatitude = converter.ConvertSk42ToWgs84Latitude(latitude, 0);
+                        resultLongitude = converter.ConvertSk42ToWgs84Longitude(latitude, longitude, 0);
+
+                        break;
+                    }
+                    default:
+                    {
+                        Console.WriteLine("\nUnavailable conversion type!");
+                        Console.WriteLine("Available types are:");
+                        Console.WriteLine("1 - WGS-84 -> SK-42");
+                        Console.WriteLine("2 - SK-42 -> WGS-84");
+                            
+                        continue;
                     }
                 }
+                    
+                Console.WriteLine($"Result: {resultLatitude}, {resultLongitude}");
             } while (IsAgain());
         }
 
         private static bool IsAgain()
         {
-            Console.WriteLine("Quit?");
+            Console.WriteLine("\nQuit?");
             Console.WriteLine("1 - yes, 2 - no");
-            var quit = Console.ReadLine();
+            var isSucceed = int.TryParse(Console.ReadLine(),  out var quitInt);
 
-            if (quit != null)
+            if (isSucceed && quitInt is >= 1 and <= 2)
             {
-                if (int.Parse(quit) == 1)
-                {
-                    return false;
-                }
+                Console.WriteLine();
+                return quitInt != 1;
+            }
+            
+            Console.WriteLine("\nType appropriate value!\n");
+                
+            return true;
+        }
+
+        private static string[]? GetLatitudeAndLongitude()
+        {
+            var latLongRegex =
+                new Regex(@"^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$");
+            
+            Console.WriteLine("Input latitude and longitude in WGS-84:");
+            var latAndLongString = Console.ReadLine();
+
+            if (latAndLongString is not null && latLongRegex.IsMatch(latAndLongString))
+            {
+                return latAndLongString.Split(',');
             }
 
-            return true;
+            Console.WriteLine("\nInvalid format or null string.");
+            Console.WriteLine("Valid formats example:");
+            Console.WriteLine("49.9999631298, 50.0014646551");
+            Console.WriteLine("+49.9999631298, -50.0014646551");
+            Console.WriteLine("49.9999631298, -50.0014646551");
+            Console.WriteLine("49, 50.00001");
+            Console.WriteLine("49, 50");
+            Console.WriteLine("49,50");
+            Console.WriteLine("49,               50");
+            Console.WriteLine("49, +50");
+
+            return null;
         }
     }
 
