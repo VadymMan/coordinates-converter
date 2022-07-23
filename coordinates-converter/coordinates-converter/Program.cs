@@ -11,8 +11,9 @@ namespace СoordinatesСonverter
             do
             {
                 Console.WriteLine("Choose conversion:");
-                Console.WriteLine("1 - WGS-84 -> SK-42");
-                Console.WriteLine("2 - SK-42 -> WGS-84");
+                Console.WriteLine("1 - WGS-84 (azimuth) -> SK-42  (azimuth)");
+                Console.WriteLine("2 - SK-42  (azimuth) -> WGS-84 (azimuth)");
+                Console.WriteLine("3 - SK-42  (meters)  -> WGS-84 (azimuth)");
                 var isConversionType = int.TryParse(Console.ReadLine(), out var conversionType);
 
                 if (!isConversionType)
@@ -61,6 +62,12 @@ namespace СoordinatesСonverter
 
                         break;
                     }
+                    case 3:
+                    {
+                        var latAndLongSplitted = GetMeters();
+                        
+                        break;
+                    }
                     default:
                     {
                         Console.WriteLine("\nUnavailable conversion type!");
@@ -98,7 +105,7 @@ namespace СoordinatesСonverter
             var latLongRegex =
                 new Regex(@"^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$");
             
-            Console.WriteLine("Input latitude and longitude in WGS-84:");
+            Console.WriteLine("Input latitude and longitude:");
             var latAndLongString = Console.ReadLine();
 
             if (latAndLongString is not null && latLongRegex.IsMatch(latAndLongString))
@@ -117,6 +124,11 @@ namespace СoordinatesСonverter
             Console.WriteLine("49,               50");
             Console.WriteLine("49, +50");
 
+            return null;
+        }
+
+        private static string[]? GetMeters()
+        {
             return null;
         }
     }
@@ -168,6 +180,11 @@ namespace СoordinatesСonverter
             return longitude + ChangeLongitude(latitude, longitude, height) / 3600;
         }
 
+        public double ConvertSk42ToWgs84Meters(double x, double y, double height)
+        {
+            
+        } 
+        
         private double ChangeLatitude(double latitude, double height)
         {
             var da = _wgs84.SemiMajorAxis - _sk42.SemiMajorAxis;
