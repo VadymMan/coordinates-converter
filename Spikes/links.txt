@@ -1,0 +1,3 @@
+https://gis-lab.info/qa/wgs84-sk42-wgs84-formula.html -- impleentation based on;
+https://mapbasic.ru/msk-wgs -- converter online;
+https://kpfu.ru/portal/docs/F1662326631/metodichka_sk42.pdf -- theory of SK-42;
